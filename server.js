@@ -1,31 +1,53 @@
-import express from "express";
+const express = require("express");
 const app = express();
-const port = process.env.PORT || 3000;
 
-app.get("/mohiiish_com_gmail_com", (req, res) => {
+const PORT = process.env.PORT || 3000;
+const ROUTE_EMAIL = process.env.ROUTE_EMAIL || "mohiiish_com_gmail_com";
+
+function gcd(a, b) {
+  a = BigInt(a);
+  b = BigInt(b);
+  return b === 0n ? a : gcd(b, a % b);
+}
+
+function lcm(a, b) {
+  a = BigInt(a);
+  b = BigInt(b);
+  return (a * b) / gcd(a, b);
+}
+
+app.get("/:email", (req, res) => {
+  const email = req.params.email;
+
+  if (email !== ROUTE_EMAIL) {
+    return res.status(404).send("Not Found");
+  }
+
   const { x, y } = req.query;
 
-  // Try to convert to BigInt
+  
+  if (x === undefined || y === undefined) {
+    return res.send("NaN");
+  }
+
   let a, b;
   try {
     a = BigInt(x);
     b = BigInt(y);
   } catch {
-    return res.type("text/plain").send("NaN");
+    return res.send("NaN");
   }
 
-  // Validate natural numbers (positive integers)
-  if (a <= 0n || b <= 0n) {
-    return res.type("text/plain").send("NaN");
-  }
+  if (a === 0n && b === 0n) return res.send("NaN");
 
-  // GCD using BigInt
-  function gcd(m, n) {
-    return n === 0n ? m : gcd(n, m % n);
-  }
+  if ((a === 0n && b > 0n) || (b === 0n && a > 0n)) return res.send("0");
 
-  const lcm = (a * b) / gcd(a, b);
-  res.type("text/plain").send(lcm.toString());
+
+  if (a < 0n || b < 0n) return res.send("NaN");
+
+  return res.send(lcm(a, b).toString());
 });
 
-app.listen(port, () => console.log(`Listening on port ${port}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
